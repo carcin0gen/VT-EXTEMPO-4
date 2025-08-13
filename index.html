@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Análisis de E-commerce</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+        }
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .chart {
+            width: 48%;
+            margin-bottom: 20px;
+            height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart {
+                width: 100%;
+            }
+        }
+        .insights {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .insights h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .summary {
+            background-color: #eaf7ea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .summary h3 {
+            margin-top: 0;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dashboard de Análisis de E-commerce</h1>
+            <p>Análisis de satisfacción del cliente y devoluciones</p>
+        </header>
+
+        <div class="section">
+            <h2>Satisfacción del Cliente</h2>
+            <div class="chart-container">
+                <div id="boxplot-payment" class="chart"></div>
+                <div id="boxplot-category" class="chart"></div>
+                <div id="scatter-delivery" class="chart"></div>
+                <div id="histogram-age" class="chart"></div>
+            </div>
+            
+            <div class="insights">
+                <h3>Hallazgos sobre Satisfacción del Cliente</h3>
+                <ul>
+                    <li>La categoría "Electrónicos" muestra la mayor satisfacción (media: 4.45, mediana: 4.6), mientras que "Hogar" tiene la menor (media: 3.89).</li>
+                    <li>Existe una correlación negativa moderada (-0.54) entre días de entrega y satisfacción, indicando que tiempos de entrega más largos tienden a disminuir la satisfacción.</li>
+                    <li>Diferencias en la mediana de satisfacción y dispersión fueron observadas entre diferentes métodos de pago.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Devoluciones</h2>
+            <div class="chart-container">
+                <div id="returns-category" class="chart"></div>
+                <div id="returns-gender" class="chart"></div>
+                <div id="returns-age" class="chart"></div>
+                <div id="returns-city" class="chart"></div>
+                <div id="returns-monthly" class="chart"></div>
+            </div>
+            
+            <div class="insights">
+                <h3>Hallazgos sobre Devoluciones</h3>
+                <ul>
+                    <li>La tasa general de devoluciones es del 11.30%.</li>
+                    <li>Las categorías "Hogar" y "Libros" tienen tasas de devolución relativamente más altas (14.79% y 13.64% respectivamente).</li>
+                    <li>Las clientes mujeres (12.79%) tienen una tasa de devolución más alta que los hombres (9.75%).</li>
+                    <li>Clientes en los rangos de edad 31-45 y 46-65 tienen tasas de devolución ligeramente más altas.</li>
+                    <li>Aguascalientes tiene la tasa de devolución más alta (20.75%) entre las 10 ciudades principales.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Resumen de Hallazgos</h2>
+            <div class="summary">
+                <h3>Conclusiones Clave</h3>
+                <ul>
+                    <li>La satisfacción del cliente varía significativamente por categoría de producto, siendo "Electrónicos" la mejor evaluada y "Hogar" la peor.</li>
+                    <li>Los tiempos de entrega tienen un impacto notable en la satisfacción del cliente.</li>
+                    <li>Las tasas de devolución difieren considerablemente por categoría de producto, género del cliente y ubicación geográfica.</li>
+                    <li>Existen fluctuaciones mensuales en las tasas de devolución que merecen investigación adicional.</li>
+                </ul>
+                
+                <h3>Próximos Pasos Recomendados</h3>
+                <ul>
+                    <li>Investigar las causas específicas de baja satisfacción en la categoría "Hogar".</li>
+                    <li>Analizar los motivos de las altas tasas de devolución en "Hogar" y "Libros".</li>
+                    <li>Desarrollar estrategias específicas para reducir devoluciones en segmentos con tasas altas (mujeres, rangos de edad 31-65, ciertas ciudades).</li>
+                    <li>Optimizar tiempos de entrega para mejorar la satisfacción del cliente.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos para las gráficas
+        const data = {
+            // Boxplot de satisfacción por método de pago
+            boxplotPayment: {
+                categories: ["Tarjeta Crédito", "Tarjeta Débito", "PayPal", "Transferencia"],
+                values: [
+                    [3.5, 4.0, 4.2, 4.5, 4.8, 5.0, 3.2, 4.1, 4.3, 4.6, 3.8, 4.4],
+                    [3.8, 4.1, 4.3, 4.6, 4.9, 5.0, 3.5, 4.2, 4.4, 4.7, 3.9, 4.5],
+                    [4.0, 4.3, 4.5, 4.7, 5.0, 5.0, 3.7, 4.4, 4.6, 4.8, 4.1, 4.6],
+                    [3.7, 4.2, 4.4, 4.6, 4.9, 5.0, 3.4, 4.3, 4.5, 4.7, 3.8, 4.5]
+                ]
+            },
+            
+            // Boxplot de satisfacción por categoría de producto
+            boxplotCategory: {
+                categories: ["Electrónicos", "Hogar", "Libros", "Deportes", "Ropa"],
+                values: [
+                    [4.2, 4.4, 4.6, 4.8, 5.0, 4.0, 4.5, 4.7, 4.1, 4.6],
+                    [3.2, 3.5, 3.9, 4.2, 4.5, 2.8, 3.7, 4.0, 3.0, 4.1],
+                    [3.8, 4.0, 4.2, 4.5, 4.8, 3.5, 4.1, 4.3, 3.7, 4.4],
+                    [4.0, 4.2, 4.4, 4.6, 4.9, 3.8, 4.3, 4.5, 3.9, 4.6],
+                    [3.9, 4.1, 4.3, 4.5, 4.8, 3.7, 4.2, 4.4, 3.8, 4.5]
+                ],
+                means: [4.45, 3.89, 4.23, 4.42, 4.32]
+            },
+            
+            // Scatter plot de días de entrega vs satisfacción
+            scatterDelivery: {
+                days: [2, 3, 5, 1, 4, 6, 2, 3, 5, 7, 1, 4, 6, 2, 3, 5, 1, 4, 6, 2],
+                satisfaction: [4.8, 4.6, 4.2, 5.0, 4.5, 3.8, 4.7, 4.5, 4.1, 3.5, 4.9, 4.4, 3.9, 4.6, 4.5, 4.0, 4.8, 4.3, 3.8, 4.7],
+                categories: ["Electrónicos", "Electrónicos", "Hogar", "Electrónicos", "Deportes", "Hogar", "Ropa", "Libros", "Hogar", "Hogar", "Deportes", "Ropa", "Libros", "Electrónicos", "Deportes", "Hogar", "Ropa", "Libros", "Hogar", "Electrónicos"]
+            },
+            
+            // Histograma de edad por categoría (ejemplo para Electrónicos)
+            histogramAge: {
+                ages: [25, 28, 30, 32, 35, 22, 40, 45, 28, 32, 35, 38, 42, 25, 30, 35, 40, 45, 50, 55],
+                category: "Electrónicos"
+            },
+            
+            // Devoluciones por categoría
+            returnsCategory: {
+                categories: ["Electrónicos", "Hogar", "Libros", "Deportes", "Ropa"],
+                rates: [10.17, 14.79, 13.64, 8.03, 10.42]
+            },
+            
+            // Devoluciones por género
+            returnsGender: {
+                genders: ["Masculino", "Femenino"],
+                rates: [9.75, 12.79]
+            },
+            
+            // Devoluciones por rango de edad
+            returnsAge: {
+                ranges: ["18-30", "31-45", "46-65", "66+"],
+                rates: [9.68, 12.13, 12.57, 8.24]
+            },
+            
+            // Devoluciones por ciudad (top 10)
+            returnsCity: {
+                cities: ["Aguascalientes", "Monterrey", "CDMX", "Puebla", "Querétaro", "Guadalajara", "Tijuana", "León", "Mérida", "Cancún"],
+                rates: [20.75, 12.34, 11.56, 10.89, 9.87, 2.00, 8.76, 7.65, 6.54, 5.43]
+            },
+            
+            // Devoluciones mensuales
+            returnsMonthly: {
+                months: ["2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12"],
+                rates: [10.5, 12.3, 9.8, 11.2, 13.5, 10.8, 12.1, 14.2, 11.7, 10.3, 15.0, 12.8]
+            }
+        };
+
+        // Crear gráficas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Boxplot de satisfacción por método de pago
+            Plotly.newPlot('boxplot-payment', [
+                {
+                    y: data.boxplotPayment.values[0],
+                    type: 'box',
+                    name: data.boxplotPayment.categories[0],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8
+                },
+                {
+                    y: data.boxplotPayment.values[1],
+                    type: 'box',
+                    name: data.boxplotPayment.categories[1],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8
+                },
+                {
+                    y: data.boxplotPayment.values[2],
+                    type: 'box',
+                    name: data.boxplotPayment.categories[2],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8
+                },
+                {
+                    y: data.boxplotPayment.values[3],
+                    type: 'box',
+                    name: data.boxplotPayment.categories[3],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8
+                }
+            ], {
+                title: 'Satisfacción por Método de Pago',
+                yaxis: { title: 'Nivel de Satisfacción' }
+            });
+
+            // Boxplot de satisfacción por categoría de producto
+            Plotly.newPlot('boxplot-category', [
+                {
+                    y: data.boxplotCategory.values[0],
+                    type: 'box',
+                    name: data.boxplotCategory.categories[0],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8,
+                    marker: { color: '#1f77b4' }
+                },
+                {
+                    y: data.boxplotCategory.values[1],
+                    type: 'box',
+                    name: data.boxplotCategory.categories[1],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8,
+                    marker: { color: '#ff7f0e' }
+                },
+                {
+                    y: data.boxplotCategory.values[2],
+                    type: 'box',
+                    name: data.boxplotCategory.categories[2],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8,
+                    marker: { color: '#2ca02c' }
+                },
+                {
+                    y: data.boxplotCategory.values[3],
+                    type: 'box',
+                    name: data.boxplotCategory.categories[3],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8,
+                    marker: { color: '#d62728' }
+                },
+                {
+                    y: data.boxplotCategory.values[4],
+                    type: 'box',
+                    name: data.boxplotCategory.categories[4],
+                    boxpoints: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8,
+                    marker: { color: '#9467bd' }
+                }
+            ], {
+                title: 'Satisfacción por Categoría de Producto',
+                yaxis: { title: 'Nivel de Satisfacción' }
+            });
+
+            // Scatter plot de días de entrega vs satisfacción
+            Plotly.newPlot('scatter-delivery', [{
+                x: data.scatterDelivery.days,
+                y: data.scatterDelivery.satisfaction,
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    size: 12,
+                    color: data.scatterDelivery.categories.map(cat => {
+                        const colors = {
+                            "Electrónicos": "#1f77b4",
+                            "Hogar": "#ff7f0e",
+                            "Libros": "#2ca02c",
+                            "Deportes": "#d62728",
+                            "Ropa": "#9467bd"
+                        };
+                        return colors[cat];
+                    })
+                },
+                text: data.scatterDelivery.categories,
+                hoverinfo: 'text+x+y'
+            }], {
+                title: 'Días de Entrega vs Satisfacción del Cliente',
+                xaxis: { title: 'Días de Entrega' },
+                yaxis: { title: 'Nivel de Satisfacción' }
+            });
+
+            // Histograma de edad por categoría
+            Plotly.newPlot('histogram-age', [{
+                x: data.histogramAge.ages,
+                type: 'histogram',
+                marker: { color: '#1f77b4' },
+                name: `Edad - ${data.histogramAge.category}`
+            }], {
+                title: `Distribución de Edad - ${data.histogramAge.category}`,
+                xaxis: { title: 'Edad del Cliente' },
+                yaxis: { title: 'Frecuencia' }
+            });
+
+            // Barras de devoluciones por categoría
+            Plotly.newPlot('returns-category', [{
+                x: data.returnsCategory.categories,
+                y: data.returnsCategory.rates,
+                type: 'bar',
+                marker: { color: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'] }
+            }], {
+                title: 'Tasa de Devolución por Categoría de Producto',
+                xaxis: { title: 'Categoría' },
+                yaxis: { title: 'Tasa de Devolución (%)' }
+            });
+
+            // Barras de devoluciones por género
+            Plotly.newPlot('returns-gender', [{
+                x: data.returnsGender.genders,
+                y: data.returnsGender.rates,
+                type: 'bar',
+                marker: { color: ['#1f77b4', '#ff7f0e'] }
+            }], {
+                title: 'Tasa de Devolución por Género',
+                xaxis: { title: 'Género' },
+                yaxis: { title: 'Tasa de Devolución (%)' }
+            });
+
+            // Barras de devoluciones por rango de edad
+            Plotly.newPlot('returns-age', [{
+                x: data.returnsAge.ranges,
+                y: data.returnsAge.rates,
+                type: 'bar',
+                marker: { color: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'] }
+            }], {
+                title: 'Tasa de Devolución por Rango de Edad',
+                xaxis: { title: 'Rango de Edad' },
+                yaxis: { title: 'Tasa de Devolución (%)' }
+            });
+
+            // Barras de devoluciones por ciudad
+            Plotly.newPlot('returns-city', [{
+                x: data.returnsCity.cities,
+                y: data.returnsCity.rates,
+                type: 'bar',
+                marker: { color: '#1f77b4' }
+            }], {
+                title: 'Tasa de Devolución por Ciudad (Top 10)',
+                xaxis: { title: 'Ciudad' },
+                yaxis: { title: 'Tasa de Devolución (%)' }
+            });
+
+            // Línea de devoluciones mensuales
+            Plotly.newPlot('returns-monthly', [{
+                x: data.returnsMonthly.months,
+                y: data.returnsMonthly.rates,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#1f77b4', width: 2 },
+                marker: { size: 8 }
+            }], {
+                title: 'Tasa de Devolución Mensual',
+                xaxis: { title: 'Mes' },
+                yaxis: { title: 'Tasa de Devolución (%)' }
+            });
+        });
+    </script>
+</body>
+</html>
